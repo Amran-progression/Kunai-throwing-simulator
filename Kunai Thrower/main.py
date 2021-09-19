@@ -1,4 +1,4 @@
-import pygame, os, sys
+import pygame, os, sys, random
 from pygame.constants import KEYDOWN, K_ESCAPE, K_SPACE, K_r 
 
 pygame.init()
@@ -12,6 +12,7 @@ screen = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption('Kunai Throwing Simulator')
 pygame.display.set_icon(icon)
 
+pygame.time.set_timer(pygame.USEREVENT+1, 2000)
 clock = pygame.time.Clock()
 
 # background images
@@ -60,6 +61,20 @@ class Kunai(pygame.sprite.Sprite):
 
     def draw(self, surface):
         surface.blit(pygame.transform.flip(self.image, self.flip, False), self.rect) 
+
+class Balloon(pygame.sprite.Sprite):
+    def __init__(self, x ,y):
+        super().__init__()
+        img = pygame.image.load(os.path.join('assets/sprites/icons/', 'balloon.png'))
+        self.image = pygame.transform.scale(img, (int(img.get_width()*.1), int(img.get_height() * .1)))
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        
+    def draw(self):
+        screen.blit(self.image, self.rect)
+        
+
+
 
 
 class Ninja(pygame.sprite.Sprite):
@@ -170,6 +185,7 @@ moving_left = False
 moving_right = False
 throwing = False
 kunai_array = []
+balloon_array = []
 
 class Level:
     def __init__(self, level_data, surface):
@@ -194,6 +210,7 @@ class Level:
 
 level = Level(level_map, screen)
 
+
 while True:
     screen.fill((0,0,0))
     screen.blit(sky_image,(bg_sky-350,-70))
@@ -209,6 +226,11 @@ while True:
         kunai.draw(screen)
         kunai.update()
     
+    for balloon in balloon_array:
+        balloon.draw()
+        if pygame.sprite.collide_rect(kunai, balloon):
+            balloon_array.remove(balloon)
+            kunai_array.remove(kunai)
 
     if moving_right:
         player.update_action(1)
@@ -256,7 +278,9 @@ while True:
             if event.key == pygame.K_r:
                 throwing = False
     
-   
+        if event.type == pygame.USEREVENT+1:
+            balloon = Balloon((random.randrange(0,WIDTH-30)),(random.randrange(0,HEIGHT-100)))
+            balloon_array.append(balloon)
     
     
 
